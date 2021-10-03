@@ -1,3 +1,6 @@
+# JetBrains  CLion stuff
+.idea/
+
 # C++ objects and libs
 *.slo
 *.lo
