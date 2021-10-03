@@ -2,7 +2,10 @@
 // Created by owen on 4/10/21.
 //
 
+<<<<<<< HEAD
 #include <QFont>
+=======
+>>>>>>> refs/remotes/origin/main
 #include <QStringList>
 #include <QtWidgets>
 #include "qis_widget.hpp"
