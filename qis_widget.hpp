@@ -14,6 +14,7 @@
 
 class QPushButton;
 class QTextBrowser;
+class QLineEdit;
 class QNetworkAccessManager;
 class QNetworkRequest;
 
@@ -29,12 +30,12 @@ public:
 
 private slots:
     void onButtonReleased();
-    void onCaptureProcessOutput(); // Handler for Process output
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
 
 private:
     QPushButton* button_;
     QTextBrowser* textBrowser_;
+    QLineEdit* domainInput_;
     QNetworkAccessManager *netManager;
     QNetworkRequest netRequest;  // On the stack, not the heap
 };

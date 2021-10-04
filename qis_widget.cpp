@@ -11,13 +11,15 @@ QISWidget::QISWidget(QWidget *parent) :
     // UI Widget and layout setup
     button_ = new QPushButton(tr("Push Me!"));
     textBrowser_ = new QTextBrowser();
+    domainInput_ = new QLineEdit();
 
     button_->setFont(QFont("Helvetica", 14, QFont::Bold));
     textBrowser_->setFont(QFont("Courier", 12));
 
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(button_,0,0);
-    mainLayout->addWidget(textBrowser_,1,0);
+    mainLayout->addWidget(button_, 0, 0);
+    mainLayout->addWidget(domainInput_, 1, 0);
+    mainLayout->addWidget(textBrowser_, 2, 0);
     setLayout(mainLayout);
     setWindowTitle(tr("QIS :: WHOIS Desktop Client"));
 
@@ -40,10 +42,12 @@ QISWidget::~QISWidget()
 // Handler for button click
 void QISWidget::onButtonReleased()
 {
+    QString domain = QString(domainInput_->text());
+
     // clear the text in the textBrowser
     textBrowser_->clear();
     textBrowser_->append(tr("Running command:"));
-
+    textBrowser_->append(domain);
     netRequest.setUrl(QUrl("https://www.example.com/index.html"));
     netManager->get(netRequest);
 }
