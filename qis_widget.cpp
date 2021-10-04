@@ -13,6 +13,9 @@ QISWidget::QISWidget(QWidget *parent) :
     textBrowser_ = new QTextBrowser();
     domainInput_ = new QLineEdit();
 
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    apiPassword = env.value("QIS_API_PASSWORD", "none");
+    apiUsername = env.value("QIS_API_USERNAME", "none");
     button_->setFont(QFont("Helvetica", 14, QFont::Bold));
     textBrowser_->setFont(QFont("Courier", 12));
 
@@ -25,7 +28,7 @@ QISWidget::QISWidget(QWidget *parent) :
 
     // The network stuff
     netManager = new QNetworkAccessManager();
-    netRequest.setUrl(QUrl("https://www.example.com/"));
+//    netRequest.setRawHeader("apikey", "XkFZg1n93TfFJAyUyYThNUZ9DCz4z1HC");
 
     // connections
     connect(button_, SIGNAL(released()), this, SLOT(onButtonReleased()));
@@ -50,9 +53,11 @@ void QISWidget::onButtonReleased()
     textBrowser_->clear();
     textBrowser_->append(tr("Running command:"));
     textBrowser_->append(domain);
-
-    QString fullUrl = QString("%1%2").arg("https://promptapi.com/whois/query?domain=", domain);
-    netRequest.setUrl(QUrl(fullUrl));
+    QString apiBase = QString("https://ipinfo.io/%1/json").arg(domain);
+//    QString fullUrl = QString("%1?domain=%2").arg(apiBase, domain);
+    netRequest.setUrl(QUrl(apiBase));
+    netRequest.setRawHeader("Accept", "application/json");
+    netRequest.setRawHeader("Authorization", QString("Token token=%1").arg(apiPassword).toUtf8());
     netManager->get(netRequest);
 }
 
@@ -60,11 +65,11 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
     if (reply->error() != QNetworkReply::NoError) {
         QString outMessage = QString("Error! %1").arg(reply->errorString());
         textBrowser_->append(outMessage);
-
         textBrowser_->append(reply->request().url().toDisplayString());
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
-        QString domain = jsonResponse["domain"].toString();
-        textBrowser_->append(domain);
+        QString registrant = jsonResponse["hostname"].toString();
+        QString region = jsonResponse["region"].toString();
+        textBrowser_->append(registrant);
     }
 }

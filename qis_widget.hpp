@@ -15,6 +15,7 @@
 class QPushButton;
 class QTextBrowser;
 class QLineEdit;
+class QProcessEnvironment;
 class QNetworkAccessManager;
 class QNetworkRequest;
 
@@ -38,6 +39,9 @@ private:
     QLineEdit* domainInput_;
     QNetworkAccessManager *netManager;
     QNetworkRequest netRequest;  // On the stack, not the heap
+
+    QString apiUsername;
+    QString apiPassword;
 };
 
 #endif //Q_IS_QIS_WIDGET_HPP
