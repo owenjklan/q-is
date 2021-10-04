@@ -10,6 +10,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 COMPONENTS
         Core
         Gui
+        Network
         Widgets
         REQUIRED)
 
@@ -17,6 +18,7 @@ add_executable(q_is main.cpp qis_widget.hpp qis_widget.cpp)
 target_link_libraries(q_is
         Qt5::Core
         Qt5::Gui
+        Qt5::Network
         Qt5::Widgets
         )
 

@@ -1,19 +1,16 @@
 //
 // Created by owen on 4/10/21.
 //
-#include <QFont>
 
-#include <QStringList>
-#include <QtWidgets>
 #include "qis_widget.hpp"
 
 // Constructor for main, "QIS" widget
 QISWidget::QISWidget(QWidget *parent) :
         QWidget(parent)
 {
+    // UI Widget and layout setup
     button_ = new QPushButton(tr("Push Me!"));
     textBrowser_ = new QTextBrowser();
-    programArgs_ = QStringList({"-la", "/home/owen"});
 
     button_->setFont(QFont("Helvetica", 14, QFont::Bold));
     textBrowser_->setFont(QFont("Courier", 12));
@@ -24,8 +21,13 @@ QISWidget::QISWidget(QWidget *parent) :
     setLayout(mainLayout);
     setWindowTitle(tr("QIS :: WHOIS Desktop Client"));
 
+    // The network stuff
+    netManager = new QNetworkAccessManager();
+    netRequest.setUrl(QUrl("https://www.example.com/"));
+
+    // connections
     connect(button_, SIGNAL(released()), this, SLOT(onButtonReleased()));
-    connect(&process_, SIGNAL(readyReadStandardOutput()), this, SLOT(onCaptureProcessOutput()));
+    connect(netManager, SIGNAL(finished(QNetworkReply *)), this, SLOT(netManagerFinished(QNetworkReply *)));
 }
 
 // Destructor
@@ -42,17 +44,17 @@ void QISWidget::onButtonReleased()
     textBrowser_->clear();
     textBrowser_->append(tr("Running command:"));
 
-    // Set up our process to write to stdout and run our command
-    process_.setCurrentWriteChannel(QProcess::StandardOutput); // Set the write channel
-    process_.start("/usr/bin/ls", programArgs_, QIODevice::ReadOnly); // Start the program
+    netRequest.setUrl(QUrl("https://www.example.com/index.html"));
+    netManager->get(netRequest);
 }
 
-// This is called whenever the QProcess::readyReadStandardOutput() signal is received
-void QISWidget::onCaptureProcessOutput()
-{
-    // Determine whether the object that sent the signal was a pointer to a process
-    QProcess* process = qobject_cast<QProcess*>(sender());
-    // If so, append the output to the textbrowser
-    if (process)
-        textBrowser_->append(process->readAllStandardOutput());
+void QISWidget::netManagerFinished(QNetworkReply *reply) {
+    if (reply->error() != QNetworkReply::NoError) {
+        QString outMessage = QString("Error! %1").arg(reply->error());
+        textBrowser_->append(outMessage);
+
+        textBrowser_->append(reply->request().url().toDisplayString());
+    } else {
+        textBrowser_->append(reply->readAll());
+    }
 }

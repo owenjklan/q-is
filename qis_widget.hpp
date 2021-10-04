@@ -4,12 +4,18 @@
 #ifndef Q_IS_QIS_WIDGET_HPP
 #define Q_IS_QIS_WIDGET_HPP
 
-#include <QWidget>
-#include <QProcess>
+#include <QFont>
+#include <QUrl>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
+#include <QString>
 #include <QStringList>
+#include <QtWidgets>
 
 class QPushButton;
 class QTextBrowser;
+class QNetworkAccessManager;
+class QNetworkRequest;
 
 // This is the declaration of our MainWidget class
 // The definition/implementation is in qis_widget.cpp
@@ -24,12 +30,13 @@ public:
 private slots:
     void onButtonReleased();
     void onCaptureProcessOutput(); // Handler for Process output
+    void netManagerFinished(QNetworkReply *); // handler for HTTP request response
 
 private:
     QPushButton* button_;
     QTextBrowser* textBrowser_;
-    QProcess process_;
-    QStringList programArgs_;
+    QNetworkAccessManager *netManager;
+    QNetworkRequest netRequest;  // On the stack, not the heap
 };
 
 #endif //Q_IS_QIS_WIDGET_HPP
