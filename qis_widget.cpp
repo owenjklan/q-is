@@ -37,6 +37,8 @@ QISWidget::~QISWidget()
 {
     delete button_;
     delete textBrowser_;
+    delete domainInput_;
+    delete netManager;
 }
 
 // Handler for button click
@@ -48,17 +50,21 @@ void QISWidget::onButtonReleased()
     textBrowser_->clear();
     textBrowser_->append(tr("Running command:"));
     textBrowser_->append(domain);
-    netRequest.setUrl(QUrl("https://www.example.com/index.html"));
+
+    QString fullUrl = QString("%1%2").arg("https://promptapi.com/whois/query?domain=", domain);
+    netRequest.setUrl(QUrl(fullUrl));
     netManager->get(netRequest);
 }
 
 void QISWidget::netManagerFinished(QNetworkReply *reply) {
     if (reply->error() != QNetworkReply::NoError) {
-        QString outMessage = QString("Error! %1").arg(reply->error());
+        QString outMessage = QString("Error! %1").arg(reply->errorString());
         textBrowser_->append(outMessage);
 
         textBrowser_->append(reply->request().url().toDisplayString());
     } else {
-        textBrowser_->append(reply->readAll());
+        QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
+        QString domain = jsonResponse["domain"].toString();
+        textBrowser_->append(domain);
     }
 }
