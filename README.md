@@ -1,2 +1,5 @@
 # q-is
-A simple test Qt application that is also intended to experiment with using CLion's built-in support for Qt5 development. The application itself is intended to be a simple WHOIS client as a Qt5 desktop application.
+This started with the intention of being a Desktop WHOIS client, but getting affordable
+and reliable WHOIS API subscriptions seems to be a pain (I probably need to try harder).
+As such, I've opted for something that I know works: Using [ipinfo.io](https://ipinfo.io/)
+perform GeoIP Lookups, returning results in JSON.
