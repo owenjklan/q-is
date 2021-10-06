@@ -9,23 +9,28 @@ QISWidget::QISWidget(QWidget *parent) :
         QWidget(parent)
 {
     // UI Widget and layout setup
-    button_ = new QPushButton(tr("GeoIP Lookup..."));
+    button_ = new QPushButton(tr("GeoIP Lookup"));
     domainInput_ = new QLineEdit();
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     apiPassword = env.value("QIS_API_PASSWORD", "none");
     apiUsername = env.value("QIS_API_USERNAME", "none");
-    button_->setFont(QFont("Helvetica", 14, QFont::Bold));
+    button_->setFont(QFont("Helvetica", 10, QFont::Bold));
+
+    domainInput_->setMaximumWidth(200);
+    button_->setMaximumWidth(150);
 
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     tabsWidget->setMinimumSize(720, 480);
 
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(domainInput_, 0, 0);
-    mainLayout->addWidget(button_, 0, 1);
-    mainLayout->addWidget(tabsWidget, 1, 0, 2, 1, Qt::AlignCenter);
+    QHBoxLayout *topHLayout = new QHBoxLayout;
+    topHLayout->addWidget(domainInput_);
+    topHLayout->addWidget(button_);
+    mainLayout->addLayout(topHLayout, 0, 0);
+    mainLayout->addWidget(tabsWidget, 1, 0);
     setLayout(mainLayout);
-    setWindowTitle(tr("QIS :: WHOIS Desktop Client"));
+    setWindowTitle(tr("QIS :: ipinfo.io - Unofficial Desktop Client"));
 
     // The network stuff
     netManager = new QNetworkAccessManager();
@@ -47,8 +52,16 @@ QISWidget::~QISWidget()
 // Handler for button click
 void QISWidget::onButtonReleased()
 {
-    QString domain = QString(domainInput_->text());
+    // Creates a new text browser and makes a network request to
+    // ipinfo.io for the target IP address. The new text browser
+    // is set as the Originating Object on the network request,
+    // this way, in the reply handler, we know what widget to
+    // output to.
+    QTextBrowser *newTabTextBrowser = new QTextBrowser();
+    newTabTextBrowser->setFont(QFont("courier", 12));
+    newTabTextBrowser->setOpenExternalLinks(true);
 
+    QString domain = QString(domainInput_->text());
     if (domain.length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
         QMessageBox msgBox;
         msgBox.setText("You must provide a valid IPv4 address!");
@@ -56,22 +69,15 @@ void QISWidget::onButtonReleased()
         return;
     }
 
-    QTextBrowser *newTabTextBrowser = new QTextBrowser();
-    newTabTextBrowser->setFont(QFont("courier", 12));
-    newTabTextBrowser->setOpenExternalLinks(true);
-    int newTabIndex = tabsWidget->addTab(newTabTextBrowser, domain);
-    // clear the text in the textBrowser
-    newTabTextBrowser->clear();
+    tabsWidget->addTab(newTabTextBrowser, domain);
+
     QString apiBase = QString("https://ipinfo.io/%1/json").arg(domain);
     QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(domain);
 
     newTabTextBrowser->append(tr("Making request: ") + webBase);
-    newTabTextBrowser->append(domain);
-//    QString fullUrl = QString("%1?domain=%2").arg(apiBase, domain);
 
     netRequest.setUrl(QUrl(apiBase));
     netRequest.setRawHeader("Accept", "application/json");
-    netRequest.setRawHeader("Authorization", QString("Token token=%1").arg(apiPassword).toUtf8());
     netRequest.setOriginatingObject(newTabTextBrowser);
     netManager->get(netRequest);
 }
@@ -102,6 +108,7 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
     if (reply->error() != QNetworkReply::NoError) {
         QString outMessage = QString("Error! %1").arg(reply->errorString());
         requestOutput->append(outMessage);
+        requestOutput->append("URL Requested:");
         requestOutput->append(reply->request().url().toDisplayString());
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
