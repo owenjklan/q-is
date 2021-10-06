@@ -22,6 +22,7 @@ QISWidget::QISWidget(QWidget *parent) :
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     tabsWidget->setMinimumSize(720, 480);
+    tabsWidget->setTabsClosable(true);
 
     QGridLayout *mainLayout = new QGridLayout;
     QHBoxLayout *topHLayout = new QHBoxLayout;
@@ -30,7 +31,7 @@ QISWidget::QISWidget(QWidget *parent) :
     mainLayout->addLayout(topHLayout, 0, 0);
     mainLayout->addWidget(tabsWidget, 1, 0);
     setLayout(mainLayout);
-    setWindowTitle(tr("QIS :: ipinfo.io - Unofficial Desktop Client"));
+    setWindowTitle(tr("ipinfo.io - Unofficial Desktop Client"));
 
     // The network stuff
     netManager = new QNetworkAccessManager();
