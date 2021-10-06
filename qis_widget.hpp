@@ -11,6 +11,8 @@
 #include <QString>
 #include <QStringList>
 #include <QtWidgets>
+#include <QTabWidget>
+#include <QMap>
 
 class QPushButton;
 class QTextBrowser;
@@ -35,10 +37,13 @@ private slots:
 
 private:
     QPushButton* button_;
-    QTextBrowser* textBrowser_;
+//    QTextBrowser* newTabTextBrowser;
     QLineEdit* domainInput_;
     QNetworkAccessManager *netManager;
     QNetworkRequest netRequest;  // On the stack, not the heap
+
+    QTabWidget* tabsWidget;
+    QMap<int, QTextBrowser *> *tabWidgets;
 
     QString apiUsername;
     QString apiPassword;
