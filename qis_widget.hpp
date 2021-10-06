@@ -36,14 +36,14 @@ private slots:
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
 
 private:
+    void outputResults(QJsonObject json, QTextBrowser *output);
+
     QPushButton* button_;
-//    QTextBrowser* newTabTextBrowser;
     QLineEdit* domainInput_;
     QNetworkAccessManager *netManager;
     QNetworkRequest netRequest;  // On the stack, not the heap
 
     QTabWidget* tabsWidget;
-    QMap<int, QTextBrowser *> *tabWidgets;
 
     QString apiUsername;
     QString apiPassword;

@@ -11,13 +11,11 @@ QISWidget::QISWidget(QWidget *parent) :
     // UI Widget and layout setup
     button_ = new QPushButton(tr("GeoIP Lookup..."));
     domainInput_ = new QLineEdit();
-
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     apiPassword = env.value("QIS_API_PASSWORD", "none");
     apiUsername = env.value("QIS_API_USERNAME", "none");
     button_->setFont(QFont("Helvetica", 14, QFont::Bold));
 
-    tabWidgets = new QMap<int, QTextBrowser *>();
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     tabsWidget->setMinimumSize(720, 480);
@@ -26,13 +24,11 @@ QISWidget::QISWidget(QWidget *parent) :
     mainLayout->addWidget(domainInput_, 0, 0);
     mainLayout->addWidget(button_, 0, 1);
     mainLayout->addWidget(tabsWidget, 1, 0, 2, 1, Qt::AlignCenter);
-    //    mainLayout->addWidget(newTabTextBrowser, 2, 0);
     setLayout(mainLayout);
     setWindowTitle(tr("QIS :: WHOIS Desktop Client"));
 
     // The network stuff
     netManager = new QNetworkAccessManager();
-//    netRequest.setRawHeader("apikey", "XkFZg1n93TfFJAyUyYThNUZ9DCz4z1HC");
 
     // connections
     connect(button_, SIGNAL(released()), this, SLOT(onButtonReleased()));
@@ -62,20 +58,28 @@ void QISWidget::onButtonReleased()
 
     QTextBrowser *newTabTextBrowser = new QTextBrowser();
     newTabTextBrowser->setFont(QFont("courier", 12));
+    newTabTextBrowser->setOpenExternalLinks(true);
     int newTabIndex = tabsWidget->addTab(newTabTextBrowser, domain);
     // clear the text in the textBrowser
     newTabTextBrowser->clear();
-    newTabTextBrowser->append(tr("Running command:"));
-    newTabTextBrowser->append(domain);
     QString apiBase = QString("https://ipinfo.io/%1/json").arg(domain);
+    QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(domain);
+
+    newTabTextBrowser->append(tr("Making request: ") + webBase);
+    newTabTextBrowser->append(domain);
 //    QString fullUrl = QString("%1?domain=%2").arg(apiBase, domain);
+
     netRequest.setUrl(QUrl(apiBase));
     netRequest.setRawHeader("Accept", "application/json");
     netRequest.setRawHeader("Authorization", QString("Token token=%1").arg(apiPassword).toUtf8());
     netRequest.setOriginatingObject(newTabTextBrowser);
     netManager->get(netRequest);
+}
 
-    tabWidgets->insert(newTabIndex, newTabTextBrowser);
+void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
+    QString registrant = json["hostname"].toString();
+    QString region = json["region"].toString();
+    output->append(registrant);
 }
 
 void QISWidget::netManagerFinished(QNetworkReply *reply) {
@@ -85,14 +89,14 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
     originalRequest = reply->request();
     requestOutput = dynamic_cast<QTextBrowser *>(originalRequest.originatingObject());
 
+    requestOutput->append("Response received");
+
     if (reply->error() != QNetworkReply::NoError) {
         QString outMessage = QString("Error! %1").arg(reply->errorString());
         requestOutput->append(outMessage);
         requestOutput->append(reply->request().url().toDisplayString());
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
-        QString registrant = jsonResponse["hostname"].toString();
-        QString region = jsonResponse["region"].toString();
-        requestOutput->append(registrant);
+        outputResults(jsonResponse, requestOutput);
     }
 }
