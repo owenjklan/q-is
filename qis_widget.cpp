@@ -77,9 +77,17 @@ void QISWidget::onButtonReleased()
 }
 
 void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
-    QString registrant = json["hostname"].toString();
+    QString hostname = json["hostname"].toString();
     QString region = json["region"].toString();
-    output->append(registrant);
+    QString city = json["city"].toString();
+    QString country = json["country"].toString();
+    QString org = json["org"].toString();
+
+    output->append("Hostname: " + hostname);
+    output->append("Organisation: " + org);
+    output->append("City:     " + city);
+    output->append("Region:   " + region);
+    output->append("Country:  " + country);
 }
 
 void QISWidget::netManagerFinished(QNetworkReply *reply) {
