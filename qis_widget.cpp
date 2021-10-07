@@ -4,6 +4,8 @@
 
 #include "qis_widget.hpp"
 
+#include <QDebug>
+
 // Constructor for main, "QIS" widget
 QISWidget::QISWidget(QWidget *parent) :
         QWidget(parent)
@@ -39,6 +41,7 @@ QISWidget::QISWidget(QWidget *parent) :
     // connections
     connect(button_, SIGNAL(released()), this, SLOT(onButtonReleased()));
     connect(netManager, SIGNAL(finished(QNetworkReply *)), this, SLOT(netManagerFinished(QNetworkReply *)));
+    connect(tabsWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(tabCloseRequest(int)));
 }
 
 // Destructor
@@ -70,7 +73,7 @@ void QISWidget::onButtonReleased()
         return;
     }
 
-    tabsWidget->addTab(newTabTextBrowser, domain);
+    int newTabIndex = tabsWidget->addTab(newTabTextBrowser, domain);
 
     QString apiBase = QString("https://ipinfo.io/%1/json").arg(domain);
     QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(domain);
@@ -95,6 +98,13 @@ void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
     output->append("City:     " + city);
     output->append("Region:   " + region);
     output->append("Country:  " + country);
+}
+
+void QISWidget::tabCloseRequest(int tabIndex) {
+//    qDebug() << "Closing TabIndex==" << tabIndex << Qt::endl;
+    QWidget *widgetToDelete = tabsWidget->widget(tabIndex);
+    tabsWidget->removeTab(tabIndex);
+    delete widgetToDelete;
 }
 
 void QISWidget::netManagerFinished(QNetworkReply *reply) {

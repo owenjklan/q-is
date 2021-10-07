@@ -34,6 +34,7 @@ public:
 private slots:
     void onButtonReleased();
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
+    void tabCloseRequest(int tabIndex);
 
 private:
     void outputResults(QJsonObject json, QTextBrowser *output);
