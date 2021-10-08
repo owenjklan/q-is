@@ -10,17 +10,34 @@
 QISWidget::QISWidget(QWidget *parent) :
         QWidget(parent)
 {
-    // UI Widget and layout setup
-    lookupButton = new QPushButton(tr("GeoIP Lookup"));
-    ipInput = new QLineEdit();
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    apiPassword = env.value("QIS_API_PASSWORD", "none");
-    apiUsername = env.value("QIS_API_USERNAME", "none");
-    lookupButton->setFont(QFont("Helvetica", 10, QFont::Bold));
+    setupUiAndSignals(parent);
 
+    // The network stuff
+    netManager = new QNetworkAccessManager();
+
+    // When a HTTP request has finished and we have a reponse
+    connect(netManager, SIGNAL(finished(QNetworkReply *)),
+            this, SLOT(netManagerFinished(QNetworkReply *)));
+}
+
+// Destructor
+QISWidget::~QISWidget()
+{
+    delete lookupButton;
+    delete tabsWidget;
+    delete ipInput;
+    delete netManager;
+}
+
+// Our own UI setup function. We build our UI from scratch
+void QISWidget::setupUiAndSignals(QWidget *parent) {
+    lookupButton = new QPushButton(tr("GeoIP Lookup"));
+    lookupButton->setFont(QFont("Helvetica", 10, QFont::Bold));
+    lookupButton->setMaximumWidth(150);
+
+    ipInput = new QLineEdit();
     ipInput->setMaximumWidth(200);
     ipInput->setPlaceholderText("1.2.3.4");
-    lookupButton->setMaximumWidth(150);
 
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -35,27 +52,16 @@ QISWidget::QISWidget(QWidget *parent) :
     mainLayout->addWidget(tabsWidget, 1, 0);
     setLayout(mainLayout);
     setWindowTitle(tr("ipinfo.io - Unofficial Desktop Client"));
+    connect(lookupButton, SIGNAL(released()),
+            this, SLOT(onLookupButtonReleased()));
 
-    // The network stuff
-    netManager = new QNetworkAccessManager();
-
-    // connections
-    connect(lookupButton, SIGNAL(released()), this, SLOT(onButtonReleased()));
-    connect(netManager, SIGNAL(finished(QNetworkReply *)), this, SLOT(netManagerFinished(QNetworkReply *)));
-    connect(tabsWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(tabCloseRequest(int)));
-}
-
-// Destructor
-QISWidget::~QISWidget()
-{
-    delete lookupButton;
-    delete tabsWidget;
-    delete ipInput;
-    delete netManager;
+    // Close button on individual tabs
+    connect(tabsWidget, SIGNAL(tabCloseRequested(int)),
+            this, SLOT(tabCloseRequest(int)));
 }
 
 // Handler for button click
-void QISWidget::onButtonReleased()
+void QISWidget::onLookupButtonReleased()
 {
     // Creates a new text browser and makes a network request to
     // ipinfo.io for the target IP address. The new text browser
@@ -102,7 +108,6 @@ void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
 }
 
 void QISWidget::tabCloseRequest(int tabIndex) {
-//    qDebug() << "Closing TabIndex==" << tabIndex << Qt::endl;
     QWidget *widgetToDelete = tabsWidget->widget(tabIndex);
     tabsWidget->removeTab(tabIndex);
     delete widgetToDelete;
@@ -116,6 +121,7 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
     requestOutput = dynamic_cast<QTextBrowser *>(originalRequest.originatingObject());
 
     requestOutput->append("Response received");
+    requestOutput->insertHtml("<hr />\n");
 
     if (reply->error() != QNetworkReply::NoError) {
         QString outMessage = QString("Error! %1").arg(reply->errorString());
