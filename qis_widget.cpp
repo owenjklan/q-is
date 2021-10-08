@@ -11,15 +11,16 @@ QISWidget::QISWidget(QWidget *parent) :
         QWidget(parent)
 {
     // UI Widget and layout setup
-    button_ = new QPushButton(tr("GeoIP Lookup"));
-    domainInput_ = new QLineEdit();
+    lookupButton = new QPushButton(tr("GeoIP Lookup"));
+    ipInput = new QLineEdit();
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     apiPassword = env.value("QIS_API_PASSWORD", "none");
     apiUsername = env.value("QIS_API_USERNAME", "none");
-    button_->setFont(QFont("Helvetica", 10, QFont::Bold));
+    lookupButton->setFont(QFont("Helvetica", 10, QFont::Bold));
 
-    domainInput_->setMaximumWidth(200);
-    button_->setMaximumWidth(150);
+    ipInput->setMaximumWidth(200);
+    ipInput->setPlaceholderText("1.2.3.4");
+    lookupButton->setMaximumWidth(150);
 
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -28,8 +29,8 @@ QISWidget::QISWidget(QWidget *parent) :
 
     QGridLayout *mainLayout = new QGridLayout;
     QHBoxLayout *topHLayout = new QHBoxLayout;
-    topHLayout->addWidget(domainInput_);
-    topHLayout->addWidget(button_);
+    topHLayout->addWidget(ipInput);
+    topHLayout->addWidget(lookupButton);
     mainLayout->addLayout(topHLayout, 0, 0);
     mainLayout->addWidget(tabsWidget, 1, 0);
     setLayout(mainLayout);
@@ -39,7 +40,7 @@ QISWidget::QISWidget(QWidget *parent) :
     netManager = new QNetworkAccessManager();
 
     // connections
-    connect(button_, SIGNAL(released()), this, SLOT(onButtonReleased()));
+    connect(lookupButton, SIGNAL(released()), this, SLOT(onButtonReleased()));
     connect(netManager, SIGNAL(finished(QNetworkReply *)), this, SLOT(netManagerFinished(QNetworkReply *)));
     connect(tabsWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(tabCloseRequest(int)));
 }
@@ -47,9 +48,9 @@ QISWidget::QISWidget(QWidget *parent) :
 // Destructor
 QISWidget::~QISWidget()
 {
-    delete button_;
+    delete lookupButton;
     delete tabsWidget;
-    delete domainInput_;
+    delete ipInput;
     delete netManager;
 }
 
@@ -65,7 +66,7 @@ void QISWidget::onButtonReleased()
     newTabTextBrowser->setFont(QFont("courier", 12));
     newTabTextBrowser->setOpenExternalLinks(true);
 
-    QString domain = QString(domainInput_->text());
+    QString domain = QString(ipInput->text());
     if (domain.length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
         QMessageBox msgBox;
         msgBox.setText("You must provide a valid IPv4 address!");

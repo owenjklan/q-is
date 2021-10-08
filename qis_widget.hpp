@@ -39,8 +39,8 @@ private slots:
 private:
     void outputResults(QJsonObject json, QTextBrowser *output);
 
-    QPushButton* button_;
-    QLineEdit* domainInput_;
+    QPushButton* lookupButton;
+    QLineEdit* ipInput;
     QNetworkAccessManager *netManager;
     QNetworkRequest netRequest;  // On the stack, not the heap
 
