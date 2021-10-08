@@ -31,36 +31,48 @@ QISWidget::~QISWidget()
 
 // Our own UI setup function. We build our UI from scratch
 void QISWidget::setupUiAndSignals(QWidget *parent) {
+    // Create and setup all our widgets
     lookupButton = new QPushButton(tr("GeoIP Lookup"));
     lookupButton->setFont(QFont("Helvetica", 10, QFont::Bold));
     lookupButton->setMaximumWidth(150);
+    lookupButton->setToolTip(tr("Perform a GeoIP lookup against ipinfo.io."));
+    lookupButton->setToolTipDuration(2000);
 
     ipInput = new QLineEdit();
     ipInput->setMaximumWidth(200);
     ipInput->setPlaceholderText("1.2.3.4");
+    ipInput->setToolTip(tr("Enter an IPv4 address in dotted-quad notation."));
+    ipInput->setToolTipDuration(2000);
 
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     tabsWidget->setMinimumSize(720, 480);
     tabsWidget->setTabsClosable(true);
 
+    // Layout all the widgets
     QGridLayout *mainLayout = new QGridLayout;
-    QHBoxLayout *topHLayout = new QHBoxLayout;
-    topHLayout->addWidget(ipInput);
-    topHLayout->addWidget(lookupButton);
-    mainLayout->addLayout(topHLayout, 0, 0);
-    mainLayout->addWidget(tabsWidget, 1, 0);
+    QHBoxLayout *inputsHLayout = new QHBoxLayout;
+    QHBoxLayout *resultsHLayout = new QHBoxLayout;
+
+    inputsHLayout->addWidget(ipInput);
+    inputsHLayout->addWidget(lookupButton);
+
+    resultsHLayout->addWidget(tabsWidget);
+
+    mainLayout->addLayout(inputsHLayout, 0, 0);
+    mainLayout->addLayout(resultsHLayout, 1, 0);
+
     setLayout(mainLayout);
     setWindowTitle(tr("ipinfo.io - Unofficial Desktop Client"));
+
+    // Connect signals for UI widgets
     connect(lookupButton, SIGNAL(released()),
             this, SLOT(onLookupButtonReleased()));
-
-    // Close button on individual tabs
     connect(tabsWidget, SIGNAL(tabCloseRequested(int)),
             this, SLOT(tabCloseRequest(int)));
 }
 
-// Handler for button click
+// Handler for click of the "GeoIP Lookup" button.
 void QISWidget::onLookupButtonReleased()
 {
     // Creates a new text browser and makes a network request to
@@ -93,6 +105,8 @@ void QISWidget::onLookupButtonReleased()
     netManager->get(netRequest);
 }
 
+// Utility function to encapsulate outputting received JSON results into
+// a given Text Browser, which will be the body of a single tab
 void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
     QString hostname = json["hostname"].toString();
     QString region = json["region"].toString();
@@ -107,12 +121,16 @@ void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
     output->append("Country:  " + country);
 }
 
+// Slot function for pressing the little "close" button on tabs
 void QISWidget::tabCloseRequest(int tabIndex) {
     QWidget *widgetToDelete = tabsWidget->widget(tabIndex);
     tabsWidget->removeTab(tabIndex);
     delete widgetToDelete;
 }
 
+// Slot function for receiving reponses to HTTP requests we made.
+// TODO: This needs serious thought regarding possible concurrency issues
+//       when multiple requests are in flight.
 void QISWidget::netManagerFinished(QNetworkReply *reply) {
     QTextBrowser *requestOutput;
     QNetworkRequest originalRequest;
