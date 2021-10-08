@@ -2,7 +2,7 @@
 // Created by owen on 4/10/21.
 //
 
-#include "qis_widget.hpp"
+#include "QISWidget.hpp"
 
 #include <QDebug>
 

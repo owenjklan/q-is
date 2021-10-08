@@ -1,8 +1,8 @@
 //
 // Created by owen on 4/10/21.
 //
-#ifndef Q_IS_QIS_WIDGET_HPP
-#define Q_IS_QIS_WIDGET_HPP
+#ifndef Q_IS_QISWIDGET_HPP
+#define Q_IS_QISWIDGET_HPP
 
 // Sure, these #includes could be less verbose but I am making
 // a conscious decision to make them explicit (bloody Python
@@ -53,4 +53,4 @@ private:
     QNetworkRequest netRequest;  // On the stack, not the heap
 };
 
-#endif //Q_IS_QIS_WIDGET_HPP
+#endif //Q_IS_QISWIDGET_HPP

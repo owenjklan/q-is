@@ -2,8 +2,8 @@
 // Created by owen on 7/10/21.
 //
 
-#ifndef Q_IS_TABBEDRESULTWIDGET_H
-#define Q_IS_TABBEDRESULTWIDGET_H
+#ifndef Q_IS_TABBEDRESULTWIDGET_HPP
+#define Q_IS_TABBEDRESULTWIDGET_HPP
 
 #include <QWidget>
 #include <QTextBrowser>
@@ -17,4 +17,4 @@ private:
     int   extraField;
 };
 
-#endif //Q_IS_TABBEDRESULTWIDGET_H
+#endif //Q_IS_TABBEDRESULTWIDGET_HPP
