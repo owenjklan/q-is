@@ -22,3 +22,43 @@ TabbedResultWidget::TabbedResultWidget(QString *requestedIp, QWidget *parent):
 TabbedResultWidget::~TabbedResultWidget() noexcept {
     // Delete widgets
 }
+
+void TabbedResultWidget::setResponseJson(QJsonObject *response) {
+    replyJson = response;
+}
+
+void TabbedResultWidget::setNetworkReply(QNetworkReply *reply) {
+    netReply = reply;
+}
+
+void TabbedResultWidget::setDisplayJsonFlag(bool newState) {
+    displayResultsAsJson = newState;
+}
+
+void TabbedResultWidget::updateOutput() {
+    if (displayResultsAsJson == true) {
+        clear();
+        outputRawJson();
+    } else {
+        clear();
+        outputNicerDetails();
+    }
+}
+
+void TabbedResultWidget::outputRawJson() {
+    this->append("Halo! I am Raw JSON! Tee hee.");
+}
+
+void TabbedResultWidget::outputNicerDetails() {
+    QString hostname = replyJson->value("hostname").toString();
+    QString region = replyJson->value("region").toString();
+    QString city = replyJson->value("city").toString();
+    QString country = replyJson->value("country").toString();
+    QString org = replyJson->value("org").toString();
+
+    this->append("Hostname: " + hostname);
+    this->append("Organisation: " + org);
+    this->append("City:     " + city);
+    this->append("Region:   " + region);
+    this->append("Country:  " + country);
+}

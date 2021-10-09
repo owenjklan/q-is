@@ -33,6 +33,7 @@ QISWidget::~QISWidget()
 // Our own UI setup function. We build our UI from scratch
 void QISWidget::setupUiAndSignals(QWidget *parent) {
     // Create and setup all our widgets
+    // "input widgets"
     lookupButton = new QPushButton(tr("GeoIP Lookup"));
     lookupButton->setFont(QFont("Helvetica", 10, QFont::Bold));
     lookupButton->setMaximumWidth(150);
@@ -45,6 +46,7 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     ipInput->setToolTip(tr("Enter an IPv4 address in dotted-quad notation."));
     ipInput->setToolTipDuration(2000);
 
+    // "output & control widgets"
     tabsWidget = new QTabWidget(parent);
     tabsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     tabsWidget->setMinimumSize(720, 480);
@@ -112,20 +114,14 @@ void QISWidget::onLookupButtonReleased()
     netManager->get(netRequest);
 }
 
-// Utility function to encapsulate outputting received JSON results into
-// a given Text Browser, which will be the body of a single tab
-void QISWidget::outputResults(QJsonObject json, QTextBrowser *output) {
-    QString hostname = json["hostname"].toString();
-    QString region = json["region"].toString();
-    QString city = json["city"].toString();
-    QString country = json["country"].toString();
-    QString org = json["org"].toString();
+void QISWidget::onDisplayJsonChange(int newState) {
+    TabbedResultWidget *currentResults = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
 
-    output->append("Hostname: " + hostname);
-    output->append("Organisation: " + org);
-    output->append("City:     " + city);
-    output->append("Region:   " + region);
-    output->append("Country:  " + country);
+    if (newState == Qt::Checked) {
+        currentResults->setDisplayJsonFlag(true);
+    } else {
+        currentResults->setDisplayJsonFlag(false);
+    }
 }
 
 // Slot function for pressing the little "close" button on tabs
@@ -162,6 +158,7 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
         requestOutput->append(reply->request().url().toDisplayString());
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
-        outputResults(jsonResponse, requestOutput);
+        requestOutput->setResponseJson(new QJsonObject(jsonResponse));
+        requestOutput->updateOutput();
     }
 }

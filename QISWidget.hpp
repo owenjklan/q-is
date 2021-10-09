@@ -37,16 +37,18 @@ public:
 
 private slots:
     void onLookupButtonReleased();
+    void onDisplayJsonChange(int state);
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
     void tabCloseRequest(int tabIndex);
 
 private:
     void setupUiAndSignals(QWidget *parent);
-    void outputResults(QJsonObject json, QTextBrowser *output);
 
     QPushButton* lookupButton;
     QLineEdit* ipInput;
     QTabWidget* tabsWidget;
+    QPushButton* saveButton;
+    QCheckBox* dispalyJsonCheck;
 
     QNetworkAccessManager *netManager;
     // TODO: Should the below be on the heap instead? Ie: Concurrecy issues??

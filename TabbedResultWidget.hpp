@@ -17,6 +17,12 @@ public:
     explicit TabbedResultWidget(QString *requestedIp, QWidget *parent = 0); //Constructor
     ~TabbedResultWidget(); // Destructor
 
+    void setNetworkReply(QNetworkReply *reply);
+    void setResponseJson(QJsonObject *response);
+    void setDisplayJsonFlag(bool newState);
+
+    void updateOutput();
+
     qint64 requestStartTimeMillis;
     qint64 requestEndTimeMillis;
     qint64 requestDurationMillis;
@@ -25,6 +31,9 @@ private slots:
 
     // private slots, duh
 private:
+    void outputRawJson();
+    void outputNicerDetails();
+
     bool displayResultsAsJson;
     bool savedToFile;
     QString *savedFileName;
