@@ -40,6 +40,15 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     lookupButton->setToolTip(tr("Perform a GeoIP lookup against ipinfo.io."));
     lookupButton->setToolTipDuration(2000);
 
+    saveButton = new QPushButton(tr("Save"));
+    saveButton->setMaximumWidth(100);
+    saveButton->setToolTip(tr(
+            "Save the current output to disk. "
+            "Note: This will save EXACTLY what is visible in the tab,"
+            " do NOT assume it is always JSON!"));
+    saveButton->setToolTipDuration(2000);
+    saveButton->setDisabled(true);
+
     ipInput = new QLineEdit();
     ipInput->setMaximumWidth(200);
     ipInput->setPlaceholderText("1.2.3.4");
@@ -61,6 +70,8 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     QHBoxLayout *inputsHLayout = new QHBoxLayout;
     QHBoxLayout *resultsHLayout = new QHBoxLayout;
 
+    controlsVLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+    controlsVLayout->addWidget(saveButton);
     controlsVLayout->addWidget(displayJsonCheck);
 
     inputsHLayout->addWidget(ipInput);
@@ -78,6 +89,8 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     // Connect signals for UI widgets
     connect(lookupButton, SIGNAL(released()),
             this, SLOT(onLookupButtonReleased()));
+    connect(saveButton, SIGNAL(released()),
+            this, SLOT(onSaveButtonReleased()));
     connect(ipInput, SIGNAL(returnPressed()),
             this, SLOT(onLookupButtonReleased()));
     connect(tabsWidget, SIGNAL(tabCloseRequested(int)),
@@ -86,6 +99,22 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
             this, SLOT(tabChanged(int)));
     connect(displayJsonCheck, SIGNAL(stateChanged(int)),
             this, SLOT(onDisplayJsonChange(int)));
+}
+
+void QISWidget::onSaveButtonReleased() {
+    TabbedResultWidget *currentResult = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
+    QString *extension = new QString((currentResult->displayResultsAsJson) ? "json" : "txt");
+    QString suggestedFilename;
+    suggestedFilename = QString("%1.%2").arg(*(currentResult->requestedIp), *extension);
+    QString filename = QFileDialog::getSaveFileName(
+        this,
+        tr("Save tab output"),
+        suggestedFilename
+    );
+
+    QMessageBox msgbox;
+    msgbox.setText("Filename: " + filename);
+    msgbox.exec();
 }
 
 // Handler for click of the "GeoIP Lookup" button.
@@ -150,7 +179,7 @@ void QISWidget::tabCloseRequest(int tabIndex) {
     // If there are no tabs left, we should disable the "Display JSON"
     // checkbox
     if (tabsWidget->count() == 0) {
-        displayJsonCheck->setDisabled(true);
+        disableControls();
     }
 }
 
@@ -172,10 +201,9 @@ void QISWidget::tabChanged(int tabIndex) {
     }
 
     if (currentResult->requestErrors == true) {
-        displayJsonCheck->setDisabled(true);
-        return;
+        disableControls();
     } else {
-        displayJsonCheck->setEnabled(true);
+        enableControls();
     }
 }
 
@@ -205,12 +233,31 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
         requestOutput->append("URL Requested:");
         requestOutput->append(reply->request().url().toDisplayString());
         requestOutput->requestErrors = true;
-        displayJsonCheck->setDisabled(true);
+        disableControls();
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
         requestOutput->setResponseJson(new QJsonObject(jsonResponse));
         requestOutput->requestErrors = false;
         requestOutput->updateOutput();
-        displayJsonCheck->setEnabled(true);
+        enableControls();
     }
+}
+
+// The following en/disableControls() methods get all of the "common controls"
+// from the right-side sub-panel.
+
+// Called if we:
+// - switch to a tab that was an error,
+// - have close the last tab
+void QISWidget::disableControls() {
+    displayJsonCheck->setDisabled(true);
+    saveButton->setDisabled(true);
+}
+
+// Called if we:
+// - Have a reponse that is not an error
+// - Switch to a tab that does not have an error
+void QISWidget::enableControls() {
+    displayJsonCheck->setEnabled(true);
+    saveButton->setEnabled(true);
 }

@@ -36,6 +36,7 @@ public:
     ~QISWidget(); // Destructor
 
 private slots:
+    void onSaveButtonReleased();
     void onLookupButtonReleased();
     void onDisplayJsonChange(int state);
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
@@ -44,6 +45,8 @@ private slots:
 
 private:
     void setupUiAndSignals(QWidget *parent);
+    void enableControls();
+    void disableControls();
 
     QPushButton* lookupButton;
     QLineEdit* ipInput;
