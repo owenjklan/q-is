@@ -40,6 +40,7 @@ private slots:
     void onDisplayJsonChange(int state);
     void netManagerFinished(QNetworkReply *); // handler for HTTP request response
     void tabCloseRequest(int tabIndex);
+    void tabChanged(int tabIndex);
 
 private:
     void setupUiAndSignals(QWidget *parent);
@@ -48,7 +49,7 @@ private:
     QLineEdit* ipInput;
     QTabWidget* tabsWidget;
     QPushButton* saveButton;
-    QCheckBox* dispalyJsonCheck;
+    QCheckBox* displayJsonCheck;
 
     QNetworkAccessManager *netManager;
     // TODO: Should the below be on the heap instead? Ie: Concurrecy issues??

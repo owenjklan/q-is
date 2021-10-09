@@ -2,6 +2,7 @@
 // Created by owen on 7/10/21.
 //
 
+#include <QJsonDocument>
 #include "TabbedResultWidget.hpp"
 
 TabbedResultWidget::TabbedResultWidget(QString *requestedIp, QWidget *parent):
@@ -33,6 +34,7 @@ void TabbedResultWidget::setNetworkReply(QNetworkReply *reply) {
 
 void TabbedResultWidget::setDisplayJsonFlag(bool newState) {
     displayResultsAsJson = newState;
+    updateOutput();
 }
 
 void TabbedResultWidget::updateOutput() {
@@ -46,7 +48,9 @@ void TabbedResultWidget::updateOutput() {
 }
 
 void TabbedResultWidget::outputRawJson() {
-    this->append("Halo! I am Raw JSON! Tee hee.");
+    QJsonDocument jsonDoc(*replyJson);
+    QByteArray jsonRaw = jsonDoc.toJson();
+    this->append(jsonRaw);
 }
 
 void TabbedResultWidget::outputNicerDetails() {

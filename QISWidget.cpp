@@ -52,15 +52,22 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     tabsWidget->setMinimumSize(720, 480);
     tabsWidget->setTabsClosable(true);
 
+    displayJsonCheck = new QCheckBox("Display Raw JSON");
+    displayJsonCheck->setDisabled(true);
+
     // Layout all the widgets
     QGridLayout *mainLayout = new QGridLayout;
+    QVBoxLayout *controlsVLayout = new QVBoxLayout;
     QHBoxLayout *inputsHLayout = new QHBoxLayout;
     QHBoxLayout *resultsHLayout = new QHBoxLayout;
+
+    controlsVLayout->addWidget(displayJsonCheck);
 
     inputsHLayout->addWidget(ipInput);
     inputsHLayout->addWidget(lookupButton);
 
     resultsHLayout->addWidget(tabsWidget);
+    resultsHLayout->addLayout(controlsVLayout);
 
     mainLayout->addLayout(inputsHLayout, 0, 0);
     mainLayout->addLayout(resultsHLayout, 1, 0);
@@ -73,6 +80,10 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
             this, SLOT(onLookupButtonReleased()));
     connect(tabsWidget, SIGNAL(tabCloseRequested(int)),
             this, SLOT(tabCloseRequest(int)));
+    connect(tabsWidget, SIGNAL(currentChanged(int)),
+            this, SLOT(tabChanged(int)));
+    connect(displayJsonCheck, SIGNAL(stateChanged(int)),
+            this, SLOT(onDisplayJsonChange(int)));
 }
 
 // Handler for click of the "GeoIP Lookup" button.
@@ -112,6 +123,9 @@ void QISWidget::onLookupButtonReleased()
     netRequest.setRawHeader("Accept", "application/json");
     netRequest.setOriginatingObject(newResultTab);
     netManager->get(netRequest);
+
+    // Ensure the common controls are enabled now we have at least 1 tab
+    displayJsonCheck->setEnabled(true);
 }
 
 void QISWidget::onDisplayJsonChange(int newState) {
@@ -129,6 +143,22 @@ void QISWidget::tabCloseRequest(int tabIndex) {
     QWidget *widgetToDelete = tabsWidget->widget(tabIndex);
     tabsWidget->removeTab(tabIndex);
     delete widgetToDelete;
+
+    // If there are no tabs left, we should disable the "Display JSON"
+    // checkbox
+    if (tabsWidget->count() == 0) {
+        displayJsonCheck->setDisabled(true);
+    }
+}
+
+void QISWidget::tabChanged(int tabIndex) {
+    TabbedResultWidget *currentResult = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
+
+    if (currentResult->displayResultsAsJson == true) {
+        displayJsonCheck->setCheckState(Qt::Checked);
+    } else {
+        displayJsonCheck->setCheckState(Qt::Unchecked);
+    }
 }
 
 // Slot function for receiving reponses to HTTP requests we made.

@@ -27,13 +27,6 @@ public:
     qint64 requestEndTimeMillis;
     qint64 requestDurationMillis;
 
-private slots:
-
-    // private slots, duh
-private:
-    void outputRawJson();
-    void outputNicerDetails();
-
     bool displayResultsAsJson;
     bool savedToFile;
     QString *savedFileName;
@@ -41,6 +34,12 @@ private:
 
     QJsonObject *replyJson;
     QNetworkReply *netReply;
+
+private slots:
+
+private:
+    void outputRawJson();
+    void outputNicerDetails();
 };
 
 #endif //Q_IS_TABBEDRESULTWIDGET_HPP
