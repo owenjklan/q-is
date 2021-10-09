@@ -192,19 +192,20 @@ void QISWidget::tabCloseRequest(int tabIndex) {
 
 void QISWidget::tabChanged(int tabIndex) {
     TabbedResultWidget *currentResult = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
-
     // This condition can show up if we've closed the final tab
     if (currentResult == nullptr) {
-    // The commented stuff was just to prove a point. Could probably go.
-//        QMessageBox msgBox;
-//        msgBox.setText("NULL crash avoided");
-//        msgBox.exec();
         return;
     }
     if (currentResult->displayResultsAsJson == true) {
         displayJsonCheck->setCheckState(Qt::Checked);
     } else {
         displayJsonCheck->setCheckState(Qt::Unchecked);
+    }
+
+    // Check whether we've completed the request yet...
+    if (currentResult->requestCompleted == false) {
+        disableControls();
+        return;
     }
 
     if (currentResult->requestErrors == true) {
@@ -223,6 +224,7 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
 
     originalRequest = reply->request();
     requestOutput = dynamic_cast<TabbedResultWidget *>(originalRequest.originatingObject());
+    requestOutput->requestCompleted = true;
     QDateTime date;
     requestOutput->requestEndTimeMillis = date.toMSecsSinceEpoch();
     requestOutput->requestDurationMillis = requestOutput->requestEndTimeMillis - requestOutput->requestStartTimeMillis;

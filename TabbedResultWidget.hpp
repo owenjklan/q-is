@@ -30,6 +30,7 @@ public:
     bool displayResultsAsJson;
     bool savedToFile;
     bool requestErrors;
+    bool requestCompleted;
     QString *savedFileName;
     QString *requestedIp;
 

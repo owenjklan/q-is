@@ -15,6 +15,7 @@ TabbedResultWidget::TabbedResultWidget(QString *ip, QWidget *parent):
     displayResultsAsJson = false;
     requestErrors = false;
 
+    requestCompleted = false;
     requestedIp = ip;
     savedFileName = nullptr;
     replyJson = nullptr;
