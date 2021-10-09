@@ -40,15 +40,6 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     lookupButton->setToolTip(tr("Perform a GeoIP lookup against ipinfo.io."));
     lookupButton->setToolTipDuration(2000);
 
-    saveButton = new QPushButton(tr("Save"));
-    saveButton->setMaximumWidth(100);
-    saveButton->setToolTip(tr(
-            "Save the current output to disk. "
-            "Note: This will save EXACTLY what is visible in the tab,"
-            " do NOT assume it is always JSON!"));
-    saveButton->setToolTipDuration(2000);
-    saveButton->setDisabled(true);
-
     ipInput = new QLineEdit();
     ipInput->setMaximumWidth(200);
     ipInput->setPlaceholderText("1.2.3.4");
@@ -63,6 +54,16 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
 
     displayJsonCheck = new QCheckBox("Display Raw JSON");
     displayJsonCheck->setDisabled(true);
+    displayJsonCheck->setMaximumWidth(150);
+
+    saveButton = new QPushButton(tr("Save"));
+    saveButton->setMaximumWidth(100);
+    saveButton->setToolTip(tr(
+            "Save the current output to disk. "
+            "Note: This will save EXACTLY what is visible in the tab,"
+            " do NOT assume it is always JSON!"));
+    saveButton->setToolTipDuration(2000);
+    saveButton->setDisabled(true);
 
     // Layout all the widgets
     QGridLayout *mainLayout = new QGridLayout;
@@ -70,12 +71,17 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     QHBoxLayout *inputsHLayout = new QHBoxLayout;
     QHBoxLayout *resultsHLayout = new QHBoxLayout;
 
+    controlsVLayout->setAlignment(Qt::AlignHCenter);
+    controlsVLayout->setAlignment(Qt::AlignCenter);
+
     controlsVLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     controlsVLayout->addWidget(saveButton);
     controlsVLayout->addWidget(displayJsonCheck);
+    controlsVLayout->addStretch();
 
     inputsHLayout->addWidget(ipInput);
     inputsHLayout->addWidget(lookupButton);
+    inputsHLayout->addStretch();
 
     resultsHLayout->addWidget(tabsWidget);
     resultsHLayout->addLayout(controlsVLayout);
@@ -112,10 +118,6 @@ void QISWidget::onSaveButtonReleased() {
         tr("Save tab output"),
         suggestedFilename
     );
-
-    QMessageBox msgbox;
-    msgbox.setText("Filename: " + filename);
-    msgbox.exec();
 }
 
 // Handler for click of the "GeoIP Lookup" button.
@@ -128,9 +130,8 @@ void QISWidget::onLookupButtonReleased()
     // output to.
     QString *requestedIp4Addr = new QString(ipInput->text());
     if (requestedIp4Addr->length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
-        QMessageBox msgBox;
-        msgBox.setText("You must provide a valid IPv4 address!");
-        msgBox.exec();
+        QString message = "You must provide a valid IPv4 address!";
+        QMessageBox::information(this, tr("Information"), message);
         delete requestedIp4Addr;
         return;
     }

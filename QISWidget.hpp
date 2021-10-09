@@ -34,6 +34,7 @@ class QISWidget : public QWidget
 public:
     explicit QISWidget(QWidget *parent = 0); //Constructor
     ~QISWidget(); // Destructor
+    void displayMsgBox(QString *msg);
 
 private slots:
     void onSaveButtonReleased();
