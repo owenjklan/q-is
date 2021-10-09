@@ -78,6 +78,8 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     // Connect signals for UI widgets
     connect(lookupButton, SIGNAL(released()),
             this, SLOT(onLookupButtonReleased()));
+    connect(ipInput, SIGNAL(returnPressed()),
+            this, SLOT(onLookupButtonReleased()));
     connect(tabsWidget, SIGNAL(tabCloseRequested(int)),
             this, SLOT(tabCloseRequest(int)));
     connect(tabsWidget, SIGNAL(currentChanged(int)),
