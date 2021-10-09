@@ -75,9 +75,9 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     controlsVLayout->setAlignment(Qt::AlignCenter);
 
     controlsVLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
-    controlsVLayout->addWidget(saveButton);
     controlsVLayout->addWidget(displayJsonCheck);
     controlsVLayout->addStretch();
+    controlsVLayout->addWidget(saveButton);
 
     inputsHLayout->addWidget(ipInput);
     inputsHLayout->addWidget(lookupButton);
@@ -118,6 +118,11 @@ void QISWidget::onSaveButtonReleased() {
         tr("Save tab output"),
         suggestedFilename
     );
+
+    if (filename == nullptr) {
+        QMessageBox::warning(this, tr("Warning"), tr("It helps to select a file!"));
+        return;
+    }
 }
 
 // Handler for click of the "GeoIP Lookup" button.
