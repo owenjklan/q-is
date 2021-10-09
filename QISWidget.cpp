@@ -3,6 +3,7 @@
 //
 
 #include "QISWidget.hpp"
+#include "TabbedResultWidget.hpp"
 
 #include <QDebug>
 
@@ -80,28 +81,34 @@ void QISWidget::onLookupButtonReleased()
     // is set as the Originating Object on the network request,
     // this way, in the reply handler, we know what widget to
     // output to.
-    QTextBrowser *newTabTextBrowser = new QTextBrowser();
-    newTabTextBrowser->setFont(QFont("courier", 12));
-    newTabTextBrowser->setOpenExternalLinks(true);
-
-    QString domain = QString(ipInput->text());
-    if (domain.length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
+    QString requestedIp4Addr = QString(ipInput->text());
+    if (requestedIp4Addr.length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
         QMessageBox msgBox;
         msgBox.setText("You must provide a valid IPv4 address!");
         msgBox.exec();
+
         return;
     }
 
-    int newTabIndex = tabsWidget->addTab(newTabTextBrowser, domain);
+    // Setup results tab widget
+    TabbedResultWidget *newResultTab = new TabbedResultWidget(&requestedIp4Addr);
+    newResultTab->setFont(QFont("courier", 12));
+    newResultTab->setOpenExternalLinks(true);
 
-    QString apiBase = QString("https://ipinfo.io/%1/json").arg(domain);
-    QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(domain);
+    // We ignore the returned tab index.
+    tabsWidget->addTab(newResultTab, requestedIp4Addr);
 
-    newTabTextBrowser->append(tr("Making request: ") + webBase);
+    // Setup HTTPS request for IPInfo. We expect JSON responses
+    QString apiBase = QString("https://ipinfo.io/%1/json").arg(requestedIp4Addr);
+    QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(requestedIp4Addr);
+
+    newResultTab->append(tr("Making request: ") + webBase);
+    QDateTime date;
+    newResultTab->requestStartTimeMillis = date.toMSecsSinceEpoch();
 
     netRequest.setUrl(QUrl(apiBase));
     netRequest.setRawHeader("Accept", "application/json");
-    netRequest.setOriginatingObject(newTabTextBrowser);
+    netRequest.setOriginatingObject(newResultTab);
     netManager->get(netRequest);
 }
 
@@ -132,14 +139,21 @@ void QISWidget::tabCloseRequest(int tabIndex) {
 // TODO: This needs serious thought regarding possible concurrency issues
 //       when multiple requests are in flight.
 void QISWidget::netManagerFinished(QNetworkReply *reply) {
-    QTextBrowser *requestOutput;
+    TabbedResultWidget *requestOutput;
     QNetworkRequest originalRequest;
 
     originalRequest = reply->request();
-    requestOutput = dynamic_cast<QTextBrowser *>(originalRequest.originatingObject());
+    requestOutput = dynamic_cast<TabbedResultWidget *>(originalRequest.originatingObject());
 
-    requestOutput->append("Response received");
-    requestOutput->insertHtml("<hr />\n");
+    QDateTime date;
+    requestOutput->requestEndTimeMillis = date.toMSecsSinceEpoch();
+    requestOutput->requestDurationMillis = requestOutput->requestEndTimeMillis - requestOutput->requestStartTimeMillis;
+
+    requestOutput->append(
+            QString("Response received after %1 milliseconds\n").arg(
+                    requestOutput->requestDurationMillis
+                )
+            );
 
     if (reply->error() != QNetworkReply::NoError) {
         QString outMessage = QString("Error! %1").arg(reply->errorString());

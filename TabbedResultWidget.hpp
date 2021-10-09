@@ -8,13 +8,30 @@
 #include <QWidget>
 #include <QTextBrowser>
 
-class TabbedResultWidget: public QTextBrowser {
-    Q_OBJECT
-public:
-    TabbedResultWidget();
+#include <QJsonObject>
+#include <QNetworkReply>
 
+class TabbedResultWidget: public QTextBrowser {
+Q_OBJECT
+public:
+    explicit TabbedResultWidget(QString *requestedIp, QWidget *parent = 0); //Constructor
+    ~TabbedResultWidget(); // Destructor
+
+    qint64 requestStartTimeMillis;
+    qint64 requestEndTimeMillis;
+    qint64 requestDurationMillis;
+
+private slots:
+
+    // private slots, duh
 private:
-    int   extraField;
+    bool displayResultsAsJson;
+    bool savedToFile;
+    QString *savedFileName;
+    QString *requestedIp;
+
+    QJsonObject *replyJson;
+    QNetworkReply *netReply;
 };
 
 #endif //Q_IS_TABBEDRESULTWIDGET_HPP
