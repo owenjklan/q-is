@@ -13,6 +13,7 @@ TabbedResultWidget::TabbedResultWidget(QString *requestedIp, QWidget *parent):
 
     savedToFile = false;
     displayResultsAsJson = false;
+    requestErrors = false;
 
     requestedIp = requestedIp;
     savedFileName = nullptr;
@@ -34,6 +35,11 @@ void TabbedResultWidget::setNetworkReply(QNetworkReply *reply) {
 
 void TabbedResultWidget::setDisplayJsonFlag(bool newState) {
     displayResultsAsJson = newState;
+    // Don't attempt to render output (that we won't have) if the request
+    // resulted in an error.
+    if (requestErrors == true) {
+        return;
+    }
     updateOutput();
 }
 

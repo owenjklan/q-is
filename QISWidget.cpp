@@ -110,8 +110,8 @@ void QISWidget::onLookupButtonReleased()
     newResultTab->setFont(QFont("courier", 12));
     newResultTab->setOpenExternalLinks(true);
 
-    // We ignore the returned tab index.
-    tabsWidget->addTab(newResultTab, requestedIp4Addr);
+    int newIndex = tabsWidget->addTab(newResultTab, requestedIp4Addr);
+    tabsWidget->setCurrentIndex(newIndex);
 
     // Setup HTTPS request for IPInfo. We expect JSON responses
     QString apiBase = QString("https://ipinfo.io/%1/json").arg(requestedIp4Addr);
@@ -126,8 +126,9 @@ void QISWidget::onLookupButtonReleased()
     netRequest.setOriginatingObject(newResultTab);
     netManager->get(netRequest);
 
-    // Ensure the common controls are enabled now we have at least 1 tab
-    displayJsonCheck->setEnabled(true);
+    // Note: We only enable the "Display Raw JSON" checkbox for a
+    // given tab, AFTER it's associated network response comes back
+    // WITHOUT any error conditions!
 }
 
 void QISWidget::onDisplayJsonChange(int newState) {
@@ -156,10 +157,25 @@ void QISWidget::tabCloseRequest(int tabIndex) {
 void QISWidget::tabChanged(int tabIndex) {
     TabbedResultWidget *currentResult = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
 
+    // This condition can show up if we've closed the final tab
+    if (currentResult == nullptr) {
+    // The commented stuff was just to prove a point. Could probably go.
+//        QMessageBox msgBox;
+//        msgBox.setText("NULL crash avoided");
+//        msgBox.exec();
+        return;
+    }
     if (currentResult->displayResultsAsJson == true) {
         displayJsonCheck->setCheckState(Qt::Checked);
     } else {
         displayJsonCheck->setCheckState(Qt::Unchecked);
+    }
+
+    if (currentResult->requestErrors == true) {
+        displayJsonCheck->setDisabled(true);
+        return;
+    } else {
+        displayJsonCheck->setEnabled(true);
     }
 }
 
@@ -188,9 +204,13 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
         requestOutput->append(outMessage);
         requestOutput->append("URL Requested:");
         requestOutput->append(reply->request().url().toDisplayString());
+        requestOutput->requestErrors = true;
+        displayJsonCheck->setDisabled(true);
     } else {
         QJsonObject jsonResponse = QJsonDocument::fromJson(reply->readAll()).object();
         requestOutput->setResponseJson(new QJsonObject(jsonResponse));
+        requestOutput->requestErrors = false;
         requestOutput->updateOutput();
+        displayJsonCheck->setEnabled(true);
     }
 }
