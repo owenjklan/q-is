@@ -14,7 +14,7 @@
 class TabbedResultWidget: public QTextBrowser {
 Q_OBJECT
 public:
-    explicit TabbedResultWidget(QString *requestedIp, QWidget *parent = 0); //Constructor
+    explicit TabbedResultWidget(QString *ip, QWidget *parent = 0); //Constructor
     ~TabbedResultWidget(); // Destructor
 
     void setNetworkReply(QNetworkReply *reply);

@@ -104,8 +104,9 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
 void QISWidget::onSaveButtonReleased() {
     TabbedResultWidget *currentResult = dynamic_cast<TabbedResultWidget *>(tabsWidget->currentWidget());
     QString *extension = new QString((currentResult->displayResultsAsJson) ? "json" : "txt");
+    QString *ip = currentResult->requestedIp;
     QString suggestedFilename;
-    suggestedFilename = QString("%1.%2").arg(*(currentResult->requestedIp), *extension);
+    suggestedFilename = *ip + QString(".") + *extension;
     QString filename = QFileDialog::getSaveFileName(
         this,
         tr("Save tab output"),
@@ -125,26 +126,26 @@ void QISWidget::onLookupButtonReleased()
     // is set as the Originating Object on the network request,
     // this way, in the reply handler, we know what widget to
     // output to.
-    QString requestedIp4Addr = QString(ipInput->text());
-    if (requestedIp4Addr.length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
+    QString *requestedIp4Addr = new QString(ipInput->text());
+    if (requestedIp4Addr->length() < 7) {  // Really lazy assumption that a valid dotted-quad IPv4 address is at least 7 chars long
         QMessageBox msgBox;
         msgBox.setText("You must provide a valid IPv4 address!");
         msgBox.exec();
-
+        delete requestedIp4Addr;
         return;
     }
 
     // Setup results tab widget
-    TabbedResultWidget *newResultTab = new TabbedResultWidget(&requestedIp4Addr);
+    TabbedResultWidget *newResultTab = new TabbedResultWidget(requestedIp4Addr);
     newResultTab->setFont(QFont("courier", 12));
     newResultTab->setOpenExternalLinks(true);
 
-    int newIndex = tabsWidget->addTab(newResultTab, requestedIp4Addr);
+    int newIndex = tabsWidget->addTab(newResultTab, *requestedIp4Addr);
     tabsWidget->setCurrentIndex(newIndex);
 
     // Setup HTTPS request for IPInfo. We expect JSON responses
-    QString apiBase = QString("https://ipinfo.io/%1/json").arg(requestedIp4Addr);
-    QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(requestedIp4Addr);
+    QString apiBase = QString("https://ipinfo.io/%1/json").arg(*requestedIp4Addr);
+    QString webBase = QString("<a href='https://ipinfo.io/%1'>%1</a>").arg(*requestedIp4Addr);
 
     newResultTab->append(tr("Making request: ") + webBase);
     QDateTime date;
@@ -216,7 +217,6 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
 
     originalRequest = reply->request();
     requestOutput = dynamic_cast<TabbedResultWidget *>(originalRequest.originatingObject());
-
     QDateTime date;
     requestOutput->requestEndTimeMillis = date.toMSecsSinceEpoch();
     requestOutput->requestDurationMillis = requestOutput->requestEndTimeMillis - requestOutput->requestStartTimeMillis;

@@ -5,7 +5,7 @@
 #include <QJsonDocument>
 #include "TabbedResultWidget.hpp"
 
-TabbedResultWidget::TabbedResultWidget(QString *requestedIp, QWidget *parent):
+TabbedResultWidget::TabbedResultWidget(QString *ip, QWidget *parent):
         QTextBrowser(parent)
 {
     requestStartTimeMillis = 0;
@@ -15,7 +15,7 @@ TabbedResultWidget::TabbedResultWidget(QString *requestedIp, QWidget *parent):
     displayResultsAsJson = false;
     requestErrors = false;
 
-    requestedIp = requestedIp;
+    requestedIp = ip;
     savedFileName = nullptr;
     replyJson = nullptr;
     netReply = nullptr;
