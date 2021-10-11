@@ -56,7 +56,22 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
     displayJsonCheck->setDisabled(true);
     displayJsonCheck->setMaximumWidth(150);
 
-    saveButton = new QPushButton(tr("Save"));
+    copyButton = new QPushButton(
+        style()->standardIcon(QStyle::SP_DriveFDIcon),
+        tr("Copy")
+    );
+    copyButton->setMaximumWidth(100);
+    copyButton->setToolTip(tr("Copy the current output text to the Clipboard."));
+    copyButton->setToolTipDuration(2000);
+    copyButton->setDisabled(true);
+
+    mapsLinkLabel = new QLabel();
+    mapsLinkLabel->setOpenExternalLinks(true);
+
+    saveButton = new QPushButton(
+        style()->standardIcon(QStyle::SP_DriveFDIcon),
+        tr("Save")
+    );
     saveButton->setMaximumWidth(100);
     saveButton->setToolTip(tr(
             "Save the current output to disk. "
@@ -76,7 +91,9 @@ void QISWidget::setupUiAndSignals(QWidget *parent) {
 
     controlsVLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     controlsVLayout->addWidget(displayJsonCheck);
+    controlsVLayout->addWidget(mapsLinkLabel);
     controlsVLayout->addStretch();
+    controlsVLayout->addWidget(copyButton);
     controlsVLayout->addWidget(saveButton);
 
     inputsHLayout->addWidget(ipInput);
@@ -196,6 +213,9 @@ void QISWidget::tabChanged(int tabIndex) {
     if (currentResult == nullptr) {
         return;
     }
+
+    // Check box states
+    // "display as JSON" check
     if (currentResult->displayResultsAsJson == true) {
         displayJsonCheck->setCheckState(Qt::Checked);
     } else {
@@ -212,6 +232,13 @@ void QISWidget::tabChanged(int tabIndex) {
         disableControls();
     } else {
         enableControls();
+
+        // Update "maps link"
+        QString location = currentResult->replyJson->value("loc").toString();
+        mapsLinkLabel->setText(
+            tr("<a href='https://www.google.com/maps/search/%1'>%1</a>")\
+            .arg(location)
+        );
     }
 }
 
@@ -260,6 +287,7 @@ void QISWidget::netManagerFinished(QNetworkReply *reply) {
 void QISWidget::disableControls() {
     displayJsonCheck->setDisabled(true);
     saveButton->setDisabled(true);
+    copyButton->setDisabled(true);
 }
 
 // Called if we:
@@ -268,4 +296,5 @@ void QISWidget::disableControls() {
 void QISWidget::enableControls() {
     displayJsonCheck->setEnabled(true);
     saveButton->setEnabled(true);
+    copyButton->setEnabled(true);
 }

@@ -54,6 +54,8 @@ private:
     QTabWidget* tabsWidget;
     QPushButton* saveButton;
     QCheckBox* displayJsonCheck;
+    QLabel *mapsLinkLabel;
+    QPushButton *copyButton;
 
     QNetworkAccessManager *netManager;
     // TODO: Should the below be on the heap instead? Ie: Concurrecy issues??
